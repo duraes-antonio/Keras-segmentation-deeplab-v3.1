@@ -380,7 +380,13 @@ def Deeplabv3(weights='pascal_voc', input_tensor=None, infer = False,
     b4 = BatchNormalization(name='image_pooling_BN', epsilon=1e-5)(b4)
     b4 = Activation('relu')(b4)
     
-    b4 = Lambda(lambda x: K.resize_images(x, width_factor=int(np.ceil(input_shape[0]/OS)), height_factor=int(np.ceil(input_shape[1]/OS)), interpolation='bilinear'))(b4)
+    b4 = Lambda(lambda x: K.resize_images(
+        x,
+        width_factor=int(np.ceil(input_shape[0]/OS)),
+        height_factor=int(np.ceil(input_shape[1]/OS)),
+        data_format='channels_first',
+        interpolation='bilinear'
+    ))(b4)
 
     # simple 1x1
     b0 = Conv2D(256, (1, 1), padding='same', use_bias=False, name='aspp0')(x)
