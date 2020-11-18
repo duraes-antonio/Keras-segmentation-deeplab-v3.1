@@ -124,6 +124,15 @@ def get_VOC2012_classes():
     return PASCAL_VOC_classes
 
 
+def get_custom_classes():
+    return {
+        0: 'background',
+        1: 'covid',
+        2: 'bacterial',
+        3: 'virus'
+    }
+
+
 def sparse_crossentropy_ignoring_last_label(y_true, y_pred):
     nb_classes = K.int_shape(y_pred)[-1]
     y_true = K.one_hot(tf.to_int32(y_true[:,:,0]), nb_classes+1)[:,:,:-1]
