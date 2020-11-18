@@ -2,11 +2,11 @@ from __future__ import division
 
 from keras import backend as K
 from keras.layers import Conv2D
+from tensorflow.keras.initializers import GlorotNormal
 import numpy as np
 import tensorflow as tf
 
-
-def icnr_weights(init = tf.glorot_normal_initializer(), scale=2, shape=[3,3,32,4], dtype = tf.float32):
+def icnr_weights(init = GlorotNormal(), scale=2, shape=[3,3,32,4], dtype = tf.float32):
     sess = tf.Session()
     return sess.run(ICNR(init, scale=scale)(shape=shape, dtype=dtype))
 
