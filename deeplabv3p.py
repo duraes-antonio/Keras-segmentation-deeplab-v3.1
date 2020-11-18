@@ -31,6 +31,7 @@ if tf.__version__[0] == "2":
     from tensorflow.keras.layers import Layer, InputSpec, Conv2D, DepthwiseConv2D, UpSampling2D, ZeroPadding2D, Lambda, AveragePooling2D, Input, Activation, Concatenate, Add, Reshape, BatchNormalization, Dropout 
     from tensorflow.keras.utils import get_source_inputs
     from tensorflow.keras import backend as K
+    import tensorflow.keras.layers as layers
 else:
     from keras.models import Model
     from keras.activations import relu
