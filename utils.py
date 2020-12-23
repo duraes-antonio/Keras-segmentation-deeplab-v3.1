@@ -9,6 +9,8 @@ import multiprocessing
 workers = multiprocessing.cpu_count()//2
 import tensorflow as tf
 
+size_def = (576,576)
+
 if tf.__version__[0] == "2":
     _IS_TF_2 = True
     import tensorflow.keras.backend as K
@@ -160,13 +162,13 @@ def Jaccard(y_true, y_pred):
 class SegModel:
     epochs = 20
     batch_size = 16
-    def __init__(self, dataset='VOCdevkit/VOC2012', image_size=(320,320)):
+    def __init__(self, dataset='VOCdevkit/VOC2012', image_size=size_def):
         self.sz = image_size
         self.mainpath = dataset
         self.crop = False
             
     
-    def create_seg_model(self, net, n=21, backbone='mobilenetv2', load_weights=False, multi_gpu=False):
+    def create_seg_model(self, net, n=4, backbone='mobilenetv2', load_weights=False, multi_gpu=False):
         
         '''
         Net is:
@@ -175,7 +177,7 @@ class SegModel:
         '''
         
         model = Deeplabv3(weights=None, input_tensor=None, infer=False,
-                          input_shape=self.sz + (3,), classes=21,
+                          input_shape=self.sz + (3,), classes=4,
                           backbone=backbone, OS=16, alpha=1)
         
         base_model = Model(model.input, model.layers[-5].output)
@@ -213,7 +215,7 @@ class SegModel:
         self.model = model
         return model
 
-    def create_generators(self, crop_shape=False, mode='train', do_ahisteq=True, n_classes=21, horizontal_flip=True, 
+    def create_generators(self, crop_shape=False, mode='train', do_ahisteq=True, n_classes=4, horizontal_flip=True,
                           vertical_flip=False, blur=False, with_bg=True, brightness=0.1, rotation=5.0, 
                           zoom=0.1, validation_split=.2, seed=7):
                 
@@ -256,8 +258,8 @@ class SegModel:
     
 class SegmentationGenerator(Sequence):
     
-    def __init__(self, folder='/workspace/datasets/', mode='train', n_classes=21, batch_size=1, resize_shape=None, 
-                 validation_split = .1, seed = 7, crop_shape=(640, 320), horizontal_flip=True, blur = 0,
+    def __init__(self, folder='/workspace/datasets/', mode='train', n_classes=4, batch_size=1, resize_shape=None,
+                 validation_split = .1, seed = 7, crop_shape=size_def, horizontal_flip=True, blur = 0,
                  vertical_flip=0, brightness=0.1, rotation=5.0, zoom=0.1, do_ahisteq = True):
         
         self.blur = blur
