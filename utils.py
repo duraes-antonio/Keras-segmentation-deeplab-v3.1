@@ -189,7 +189,7 @@ class SegModel:
             scale = 8
         if net == 'original':
             x = Conv2D(n, (1, 1), padding='same', name='conv_upsample')(base_model.output)
-            x = Lambda(lambda x: K.tf.image.resize_bilinear(x,size=(self.sz[0],self.sz[1])))(x)
+            x = Lambda(lambda x: tf.compat.v1.image.resize_bilinear(x,size=(self.sz[0],self.sz[1])))(x)
             x = Reshape((self.sz[0]*self.sz[1], -1)) (x)
             x = Activation('softmax', name = 'pred_mask')(x)
             model = Model(base_model.input, x, name='deeplabv3p')
