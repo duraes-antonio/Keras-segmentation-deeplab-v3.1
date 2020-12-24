@@ -353,9 +353,9 @@ class SegmentationGenerator(Sequence):
                 label[label==j] = self.n_classes
 
             y = label.flatten()
-            print('Y SHAPE 356', y)
+            print('Y SHAPE 356', y.shape)
             y[y>(self.n_classes-1)]=self.n_classes
-            print('Y SHAPE 357', y)
+            print('Y SHAPE 357', y.shape)
                             
             self.Y[n] = np.expand_dims(y, -1)
             print('Y SHAPE 361', self.Y.shape)
