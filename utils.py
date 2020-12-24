@@ -125,16 +125,15 @@ def get_VOC2012_classes():
     }
     return PASCAL_VOC_classes
 
-
 def sparse_crossentropy_ignoring_last_label(y_true, y_pred):
     nb_classes = K.int_shape(y_pred)[-1]
-    y_true = K.one_hot(tf.to_int32(y_true[:,:,0]), nb_classes+1)[:,:,:-1]
+    y_true = K.one_hot(tf.cast(y_true[:,:,0], tf.int32), nb_classes+1)[:,:,:-1]
     return K.categorical_crossentropy(y_true, y_pred)
 
 def sparse_accuracy_ignoring_last_label(y_true, y_pred):
     nb_classes = K.int_shape(y_pred)[-1]
     y_pred = K.reshape(y_pred, (-1, nb_classes))
-    y_true = tf.to_int64(K.flatten(y_true))
+    y_true = tf.cast(K.flatten(y_true), tf.int64)
     legal_labels = ~K.equal(y_true, nb_classes)
     return K.sum(tf.to_float(legal_labels & K.equal(y_true, 
                                                     K.argmax(y_pred, axis=-1)))) / K.sum(tf.to_float(legal_labels))
@@ -145,9 +144,12 @@ def Jaccard(y_true, y_pred):
     for i in range(0, nb_classes): # exclude first label (background) and last label (void)
         true_labels = K.equal(y_true[:,:,0], i)
         pred_labels = K.equal(pred_pixels, i)
-        inter = tf.to_int32(true_labels & pred_labels)
-        union = tf.to_int32(true_labels | pred_labels)
-        legal_batches = K.sum(tf.to_int32(true_labels), axis=1)>0
+
+        tf.cast(y_true[:, :, 0], tf.int32)
+
+        inter = tf.cast(true_labels & pred_labels, tf.int32)
+        union = tf.cast(true_labels | pred_labels, tf.int32)
+        legal_batches = K.sum(tf.cast(true_labels, tf.int32), axis=1)>0
         ious = K.sum(inter, axis=1)/K.sum(union, axis=1)
         if _IS_TF_2:
             iou.append(K.mean(ious[legal_batches]))
