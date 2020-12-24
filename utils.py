@@ -258,6 +258,10 @@ class SegModel:
     def set_batch_size(cls, new_batch_size):
         cls.batch_size = new_batch_size
 
+from PIL import Image
+import numpy as np
+def get_shape_img(path_img: str):
+    return np.asarray(Image.open(path_img)).shape
     
 class SegmentationGenerator(Sequence):
     path_dataset = '/content/drive/MyDrive/dataset/576x576/custom_576x576_75_15_10_transf-morf_voc_cor'
@@ -284,9 +288,6 @@ class SegmentationGenerator(Sequence):
         self.label_path_list = sorted([
             os.path.join(self.path_dataset, 'SegmentationClass', f'{id}.{mask_ext}') for id in ids
         ])
-        print('LEN IMGs', len(self.image_path_list), self.image_path_list[0])
-        print('LEN MASKs', len(self.label_path_list), self.label_path_list[0])
-
         np.random.seed(seed)
         
         n_images_to_select = round(len(self.image_path_list) * validation_split)
@@ -297,7 +298,7 @@ class SegmentationGenerator(Sequence):
         self.image_path_list = [self.image_path_list[j] for j in x]
         self.label_path_list = [self.label_path_list[j] for j in x]
         
-        if mode == 'test':
+        if mode.lower() == 'test' or mode.lower() == 'validation' or mode.lower() == 'val':
             ids_test_images = []
             with open(os.path.join(self.path_dataset, 'ImageSets', 'val.txt'), 'r') as file_train:
                 ids_test_images = [l.strip() for l in file_train.readlines()]
@@ -305,7 +306,10 @@ class SegmentationGenerator(Sequence):
                 os.path.join(self.path_dataset, 'JPEGImages', f'{id}.{img_ext}')
                 for id in ids_test_images
             ])[:100]
-        
+
+        print('LEN IMGs', len(self.image_path_list), self.image_path_list[0], get_shape_img(self.image_path_list[0]))
+        print('LEN MASKs', len(self.label_path_list), self.label_path_list[0], get_shape_img(self.label_path_list[0]))
+
         self.mode = mode
         self.n_classes = n_classes
         self.batch_size = batch_size
