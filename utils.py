@@ -257,15 +257,32 @@ class SegModel:
 
     
 class SegmentationGenerator(Sequence):
-    
-    def __init__(self, folder='/workspace/datasets/', mode='train', n_classes=4, batch_size=1, resize_shape=None,
-                 validation_split = .1, seed = 7, crop_shape=size_def, horizontal_flip=True, blur = 0,
-                 vertical_flip=0, brightness=0.1, rotation=5.0, zoom=0.1, do_ahisteq = True):
+    path_dataset = '/content/drive/MyDrive/dataset/576x576/custom_576x576_75_15_10_transf-morf_voc_cor'
+    def __init__(
+            self, folder='path_dataset', mode='train', n_classes=4, batch_size=1, resize_shape=None,
+            validation_split = .1, seed = 7, crop_shape=size_def, horizontal_flip=True, blur = 0,
+            vertical_flip=0, brightness=0.1, rotation=5.0, zoom=0.1, do_ahisteq = True, img_ext='jpeg',
+            mask_ext='png'
+    ):
         
         self.blur = blur
         self.histeq = do_ahisteq
-        self.image_path_list = sorted(glob.glob(os.path.join(folder, 'JPEGImages', 'train', '*')))
-        self.label_path_list = sorted(glob.glob(os.path.join(folder, 'SegmentationClassAug', '*')))
+
+        ids = []
+        if (mode == 'train'):
+            with open(os.path.join(self.path_dataset, 'ImageSets', 'train.txt'), 'r') as file_train:
+                ids = [l.strip() for l in file_train.readlines()]
+        elif (mode.lower() == 'val' or mode.lower() == 'validation'):
+            with open(os.path.join(self.path_dataset, 'ImageSets', 'val.txt'), 'r') as file_train:
+                ids = [l.strip() for l in file_train.readlines()]
+        self.image_path_list = sorted([
+            os.path.join(self.path_dataset, 'JPEGImages', f'{id}.{img_ext}') for id in ids
+        ])
+        self.label_path_list = sorted([
+            os.path.join(self.path_dataset, 'SegmentationClass', f'{id}.{mask_ext}') for id in ids
+        ])
+        print('LEN IMGs', len(self.image_path_list), self.image_path_list[0])
+        print('LEN MASKs', len(self.label_path_list), self.label_path_list[0])
 
         np.random.seed(seed)
         
@@ -278,7 +295,13 @@ class SegmentationGenerator(Sequence):
         self.label_path_list = [self.label_path_list[j] for j in x]
         
         if mode == 'test':
-            self.image_path_list = sorted(glob.glob(os.path.join(folder, 'JPEGImages', 'test', '*')))[:100]
+            ids_test_images = []
+            with open(os.path.join(self.path_dataset, 'ImageSets', 'val.txt'), 'r') as file_train:
+                ids_test_images = [l.strip() for l in file_train.readlines()]
+            self.image_path_list = sorted([
+                os.path.join(self.path_dataset, 'JPEGImages', f'{id}.{img_ext}')
+                for id in ids_test_images
+            ])[:100]
         
         self.mode = mode
         self.n_classes = n_classes
