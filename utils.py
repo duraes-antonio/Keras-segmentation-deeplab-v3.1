@@ -341,28 +341,30 @@ class SegmentationGenerator(Sequence):
         
     def __getitem__(self, i):
         
-        for n, (image_path, label_path) in enumerate(zip(self.image_path_list[i*self.batch_size:(i+1)*self.batch_size], 
-                                                        self.label_path_list[i*self.batch_size:(i+1)*self.batch_size])):
+        for n, (image_path, label_path) in enumerate(
+                zip(
+                    self.image_path_list[i*self.batch_size:(i+1)*self.batch_size],
+                    self.label_path_list[i*self.batch_size:(i+1)*self.batch_size]
+                )
+        ):
             image = cv2.imread(image_path, 1)
             label = cv2.imread(label_path, 0)
-            print('IMG INDEX', i)
             print('X SHAPE INIC', np.asarray(image).shape, 'Y SHAPE INIC', np.asarray(label).shape)
+
             labels = np.unique(label)
             label = label.astype('int32')
             for j in np.setxor1d(np.unique(label), labels):
                 label[label==j] = self.n_classes
 
-            y = label.flatten()
-            print('Y SHAPE 356', y.shape)
-            y[y>(self.n_classes-1)]=self.n_classes
-            print('Y SHAPE 357', y.shape)
-                            
-            self.Y[n] = np.expand_dims(y, -1)
-            print('Y SHAPE 361', self.Y.shape)
+            # y = label.flatten()
+            # y[y>(self.n_classes-1)]=self.n_classes
+
+            self.Y[n] = label
+            print('Y SHAPE 363', self.Y.shape)
             self.F[n] = (self.Y[n]!=0).astype('float32') # get all pixels that aren't background
             valid_pixels = self.F[n][self.Y[n]!=self.n_classes] # get all pixels (bg and foregroud) that aren't void
             u_classes = np.unique(valid_pixels)
-            print('Y SHAPE 363', self.Y.shape)
+            print('Y SHAPE 367', self.Y.shape)
 
             class_weights = class_weight.compute_class_weight('balanced', u_classes, valid_pixels)
             class_weights = {class_id : w for class_id, w in zip(u_classes, class_weights)}
@@ -374,9 +376,8 @@ class SegmentationGenerator(Sequence):
             elif not len(class_weights):
                 class_weights[0] = 0.
                 class_weights[1] = 0.
-            print('Y SHAPE 375', self.Y.shape)
 
-            sw_valid = np.ones(y.shape)
+            sw_valid = np.ones(label.shape)
             np.putmask(sw_valid, self.Y[n]==0, class_weights[0]) # background weights
             np.putmask(sw_valid, self.F[n], class_weights[1]) # foreground wegihts 
             np.putmask(sw_valid, self.Y[n]==self.n_classes, 0)
@@ -385,7 +386,7 @@ class SegmentationGenerator(Sequence):
             print('Y SHAPE 383', self.Y.shape)
         
             # Create adaptive pixels weights
-            filt_y = y[y!=self.n_classes]
+            filt_y = label[label!=self.n_classes]
             u_classes = np.unique(filt_y)
             print('Y SHAPE 388', self.Y.shape)
             if len(u_classes):
@@ -393,10 +394,10 @@ class SegmentationGenerator(Sequence):
                 class_weights = {class_id : w for class_id, w in zip(u_classes, class_weights)}
             class_weights[self.n_classes] = 0.
             for yy in u_classes:
-                np.putmask(self.SW[n], y==yy, class_weights[yy])
+                np.putmask(self.SW[n], label==yy, class_weights[yy])
             print('Y SHAPE 395', self.Y.shape)
                 
-            np.putmask(self.SW[n], y==self.n_classes, 0)
+            np.putmask(self.SW[n], label==self.n_classes, 0)
             print('Y SHAPE 398', self.Y.shape)
 
         sample_dict = {'pred_mask' : self.SW}
