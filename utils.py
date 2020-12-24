@@ -135,8 +135,9 @@ def sparse_accuracy_ignoring_last_label(y_true, y_pred):
     y_pred = K.reshape(y_pred, (-1, nb_classes))
     y_true = tf.cast(K.flatten(y_true), tf.int64)
     legal_labels = ~K.equal(y_true, nb_classes)
-    return K.sum(tf.to_float(legal_labels & K.equal(y_true, 
-                                                    K.argmax(y_pred, axis=-1)))) / K.sum(tf.to_float(legal_labels))
+    value = K.sum(tf.cast(legal_labels & K.equal(y_true, K.argmax(y_pred, axis=-1)), tf.float32))
+    divisor = K.sum(tf.cast(legal_labels, tf.float32))
+    return value / divisor
 def Jaccard(y_true, y_pred):
     nb_classes = K.int_shape(y_pred)[-1]
     iou = []
