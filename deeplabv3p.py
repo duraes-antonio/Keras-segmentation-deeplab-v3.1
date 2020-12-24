@@ -29,7 +29,7 @@ if tf.__version__[0] == "2":
     from tensorflow.keras.models import Model
     from tensorflow.keras.activations import relu
     from tensorflow.keras.layers import Layer, InputSpec, Conv2D, DepthwiseConv2D, UpSampling2D, ZeroPadding2D, Lambda, AveragePooling2D, Input, Activation, Concatenate, Add, Reshape, BatchNormalization, Dropout 
-    from tensorflow.python.keras.engine import get_source_inputs
+    from tensorflow.keras.utils import get_source_inputs
     from tensorflow.keras import backend as K
 else:
     from keras.models import Model
@@ -165,7 +165,7 @@ def _make_divisible(v, divisor, min_value=None):
 
 
 def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id, skip_connection, rate=1):
-    in_channels = inputs._keras_shape[-1]
+    in_channels = inputs.shape[-1]
     pointwise_conv_filters = int(filters * alpha)
     pointwise_filters = _make_divisible(pointwise_conv_filters, 8)
     x = inputs
