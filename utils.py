@@ -345,7 +345,7 @@ class SegmentationGenerator(Sequence):
                                                         self.label_path_list[i*self.batch_size:(i+1)*self.batch_size])):
             image = cv2.imread(image_path, 1)
             label = cv2.imread(label_path, 0)
-
+            print('IMG INDEX', i)
             print('X SHAPE INIC', np.asarray(image).shape, 'Y SHAPE INIC', np.asarray(label).shape)
             labels = np.unique(label)
             label = label.astype('int32')
@@ -353,10 +353,12 @@ class SegmentationGenerator(Sequence):
                 label[label==j] = self.n_classes
 
             y = label.flatten()
+            print('Y SHAPE 356', y)
             y[y>(self.n_classes-1)]=self.n_classes
-            print('Y SHAPE 357', self.Y.shape)
+            print('Y SHAPE 357', y)
                             
             self.Y[n] = np.expand_dims(y, -1)
+            print('Y SHAPE 361', self.Y.shape)
             self.F[n] = (self.Y[n]!=0).astype('float32') # get all pixels that aren't background
             valid_pixels = self.F[n][self.Y[n]!=self.n_classes] # get all pixels (bg and foregroud) that aren't void
             u_classes = np.unique(valid_pixels)
