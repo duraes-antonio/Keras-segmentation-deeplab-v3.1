@@ -347,48 +347,6 @@ class SegmentationGenerator(Sequence):
             image = cv2.imread(image_path, 1)
             label = cv2.imread(label_path, 0)
             labels = np.unique(label)
-            
-            if self.blur and random.randint(0,1):
-                image = cv2.GaussianBlur(image, (self.blur, self.blur), 0)
-
-            if self.resize_shape and not self.crop_shape:
-                image = cv2.resize(image, self.resize_shape)
-                label = cv2.resize(label, self.resize_shape, interpolation = cv2.INTER_NEAREST)
-        
-            if self.crop_shape:
-                image, label = _random_crop(image, label, self.crop_shape)
-                
-            # Do augmentation
-            if self.horizontal_flip and random.randint(0,1):
-                image = cv2.flip(image, 1)
-                label = cv2.flip(label, 1)
-            if self.vertical_flip and random.randint(0,1):
-                image = cv2.flip(image, 0)
-                label = cv2.flip(label, 0)
-            if self.brightness:
-                factor = 1.0 + random.gauss(mu=0.0, sigma=self.brightness)
-                if random.randint(0,1):
-                    factor = 1.0/factor
-                table = np.array([((i / 255.0) ** factor) * 255 for i in np.arange(0, 256)]).astype(np.uint8)
-                image = cv2.LUT(image, table)
-            if self.rotation:
-                angle = random.gauss(mu=0.0, sigma=self.rotation)
-            else:
-                angle = 0.0
-            if self.zoom:
-                scale = random.gauss(mu=1.0, sigma=self.zoom)
-            else:
-                scale = 1.0
-            if self.rotation or self.zoom:
-                M = cv2.getRotationMatrix2D((image.shape[1]//2, image.shape[0]//2), angle, scale)
-                image = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]))
-                label = cv2.warpAffine(label, M, (label.shape[1], label.shape[0]))
-
-            if self.histeq: # and convert to RGB
-                img_yuv = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
-                img_yuv[:,:,0] = clahe.apply(img_yuv[:,:,0])
-                image = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR) # to BGR
-                 
             label = label.astype('int32')
             for j in np.setxor1d(np.unique(label), labels):
                 label[label==j] = self.n_classes
