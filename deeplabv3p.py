@@ -415,7 +415,7 @@ def Deeplabv3(weights='pascal_voc', input_tensor=None, infer = False,
         # Feature projection
         # x4 (x2) block
 
-        x = Lambda(lambda x: K.tf.image.resize_bilinear(x,size=(int(np.ceil(input_shape[0]/4)), int(np.ceil(input_shape[1]/4)))))(x)
+        x = Lambda(lambda x: tf.compat.v1.image.resize_bilinear(x,size=(int(np.ceil(input_shape[0]/4)), int(np.ceil(input_shape[1]/4)))))(x)
         
         dec_skip1 = Conv2D(48, (1, 1), padding='same',
                            use_bias=False, name='feature_projection0')(skip1)
@@ -436,7 +436,7 @@ def Deeplabv3(weights='pascal_voc', input_tensor=None, infer = False,
     
     
     x = Conv2D(classes, (1, 1), padding='same', name=last_layer_name)(x)
-    x = Lambda(lambda x: K.tf.image.resize_bilinear(x,size=(input_shape[0],input_shape[1])))(x)
+    x = Lambda(lambda x: tf.compat.v1.image.resize_bilinear(x,size=(input_shape[0],input_shape[1])))(x)
     if infer:
         x = Activation('softmax')(x)
     else:
