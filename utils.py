@@ -351,18 +351,16 @@ class SegmentationGenerator(Sequence):
             label = label.astype('int32')
             for j in np.setxor1d(np.unique(label), labels):
                 label[label==j] = self.n_classes
-            print('LABELS', labels)
-            print('LABEL', label)
 
             y = label.flatten()
             y[y>(self.n_classes-1)]=self.n_classes
+            print('Y SHAPE 357', self.Y.shape)
                             
             self.Y[n] = np.expand_dims(y, -1)
-            print('Y SHAPE EXPAND', self.Y)
             self.F[n] = (self.Y[n]!=0).astype('float32') # get all pixels that aren't background
             valid_pixels = self.F[n][self.Y[n]!=self.n_classes] # get all pixels (bg and foregroud) that aren't void
             u_classes = np.unique(valid_pixels)
-            print('UNIQUE CLASSES', u_classes)
+            print('Y SHAPE 363', self.Y.shape)
 
             class_weights = class_weight.compute_class_weight('balanced', u_classes, valid_pixels)
             class_weights = {class_id : w for class_id, w in zip(u_classes, class_weights)}
@@ -374,25 +372,30 @@ class SegmentationGenerator(Sequence):
             elif not len(class_weights):
                 class_weights[0] = 0.
                 class_weights[1] = 0.
-        
+            print('Y SHAPE 375', self.Y.shape)
+
             sw_valid = np.ones(y.shape)
             np.putmask(sw_valid, self.Y[n]==0, class_weights[0]) # background weights
             np.putmask(sw_valid, self.F[n], class_weights[1]) # foreground wegihts 
             np.putmask(sw_valid, self.Y[n]==self.n_classes, 0)
             self.F_SW[n] = sw_valid
-            self.X[n] = image    
+            self.X[n] = image
+            print('Y SHAPE 383', self.Y.shape)
         
             # Create adaptive pixels weights
             filt_y = y[y!=self.n_classes]
             u_classes = np.unique(filt_y)
+            print('Y SHAPE 388', self.Y.shape)
             if len(u_classes):
                 class_weights = class_weight.compute_class_weight('balanced', u_classes, filt_y)
                 class_weights = {class_id : w for class_id, w in zip(u_classes, class_weights)}
             class_weights[self.n_classes] = 0.
             for yy in u_classes:
                 np.putmask(self.SW[n], y==yy, class_weights[yy])
+            print('Y SHAPE 395', self.Y.shape)
                 
             np.putmask(self.SW[n], y==self.n_classes, 0)
+            print('Y SHAPE 398', self.Y.shape)
 
         sample_dict = {'pred_mask' : self.SW}
         print('X SHAPE FIM', self.X.shape, 'Y SHAPE FIM', self.Y.shape)
