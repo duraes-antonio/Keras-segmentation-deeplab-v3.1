@@ -346,6 +346,8 @@ class SegmentationGenerator(Sequence):
             
             image = cv2.imread(image_path, 1)
             label = cv2.imread(label_path, 0)
+
+            print('X SHAPE INIC', np.asarray(image).shape, 'Y SHAPE INIC', np.asarray(label).shape)
             labels = np.unique(label)
             label = label.astype('int32')
             for j in np.setxor1d(np.unique(label), labels):
@@ -389,6 +391,7 @@ class SegmentationGenerator(Sequence):
             np.putmask(self.SW[n], y==self.n_classes, 0)
 
         sample_dict = {'pred_mask' : self.SW}
+        print('X SHAPE FIM', self.X.shape, 'Y SHAPE FIM', self.Y.shape)
         return self.X, self.Y, sample_dict
         
     def on_epoch_end(self):
