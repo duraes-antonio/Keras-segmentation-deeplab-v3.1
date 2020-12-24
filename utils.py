@@ -343,7 +343,6 @@ class SegmentationGenerator(Sequence):
         
         for n, (image_path, label_path) in enumerate(zip(self.image_path_list[i*self.batch_size:(i+1)*self.batch_size], 
                                                         self.label_path_list[i*self.batch_size:(i+1)*self.batch_size])):
-            
             image = cv2.imread(image_path, 1)
             label = cv2.imread(label_path, 0)
 
@@ -352,14 +351,19 @@ class SegmentationGenerator(Sequence):
             label = label.astype('int32')
             for j in np.setxor1d(np.unique(label), labels):
                 label[label==j] = self.n_classes
-            
+            print('LABELS', labels)
+            print('LABEL', label)
+
             y = label.flatten()
             y[y>(self.n_classes-1)]=self.n_classes
                             
-            self.Y[n]  = np.expand_dims(y, -1)
-            self.F[n]  = (self.Y[n]!=0).astype('float32') # get all pixels that aren't background
+            self.Y[n] = np.expand_dims(y, -1)
+            print('Y SHAPE EXPAND', self.Y)
+            self.F[n] = (self.Y[n]!=0).astype('float32') # get all pixels that aren't background
             valid_pixels = self.F[n][self.Y[n]!=self.n_classes] # get all pixels (bg and foregroud) that aren't void
             u_classes = np.unique(valid_pixels)
+            print('UNIQUE CLASSES', u_classes)
+
             class_weights = class_weight.compute_class_weight('balanced', u_classes, valid_pixels)
             class_weights = {class_id : w for class_id, w in zip(u_classes, class_weights)}
             if len(class_weights)==1: # no bg\no fg
